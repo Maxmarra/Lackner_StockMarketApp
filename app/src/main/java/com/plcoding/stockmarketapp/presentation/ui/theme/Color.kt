@@ -1,4 +1,4 @@
-package com.plcoding.stockmarketapp.ui.theme
+package com.plcoding.stockmarketapp.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
