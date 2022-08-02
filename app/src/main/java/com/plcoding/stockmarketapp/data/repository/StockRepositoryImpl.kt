@@ -34,7 +34,7 @@ class StockRepositoryImpl @Inject constructor(
 
         return flow {
 
-
+//////////////DATABASE////////////////////////
             //загружаем данные из базы по поиску
             //emit является частью flow
             //получаем списко объектов List<CompanyListingEntity>
@@ -57,11 +57,12 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Loading(false))
                 return@flow
             }
-
+ ///////////////API////////////////////////
             //первый раз всегда грузим из API
             //здесь идет непосредственный запрос к API
             val remoteListings = try {
                 val response = api.getListings()
+                //bytestream получаем для чтения CSV файла
                 response.byteStream()
             } catch(e: IOException) {
                 e.printStackTrace()
