@@ -34,7 +34,7 @@ class StockRepositoryImpl @Inject constructor(
 
         return flow {
 
-//////////////DATABASE////////////////////////
+//////////////////////////////////////
             //загружаем данные из базы по поиску
             //emit является частью flow
             //получаем списко объектов List<CompanyListingEntity>
