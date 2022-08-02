@@ -25,28 +25,41 @@ class StockRepositoryImpl @Inject constructor(
     private val dao = db.dao
 
     override suspend fun getCompanyListings(
-
+        //данный флаг используется при выборе
+        //грузить из базы или из Api
         fetchFromRemote: Boolean,
         query: String
 
     ): Flow<Resource<List<CompanyListing>>> {
 
         return flow {
+
+
+            //загружаем данные из базы по поиску
+            //emit является частью flow
+            //получаем списко объектов List<CompanyListingEntity>
             emit(Resource.Loading(true))
             val localListings = dao.searchCompanyListing(query)
-            emit(Resource.Success(
-                data = localListings.map { it.toCompanyListing() }
-                )
-            )
 
+            //в переменную data сохраняем уже список
+            //приведенный к классу-модели List<CompanyListing>
+            emit(Resource.Success(
+                data = localListings.map { it.toCompanyListing() }))
+
+            // чтобы просто не делать ненужный запрос к Api
+            // проверяем сам список и запрос
             val isDbEmpty = localListings.isEmpty() && query.isBlank()
 
+            //Если база не пустая то грузим из нее
             val shouldJustLoadFromCache = !isDbEmpty && !fetchFromRemote
+            //а загрузку из API делаем false
             if(shouldJustLoadFromCache) {
                 emit(Resource.Loading(false))
                 return@flow
             }
 
+            //первый раз всегда грузим из API
+            //здесь идет непосредственный запрос к API
             val remoteListings = try {
                 val response = api.getListings()
                 response.byteStream()
