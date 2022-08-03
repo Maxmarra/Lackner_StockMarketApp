@@ -59,7 +59,7 @@ class CompanyListingsViewModel @Inject constructor(
                                 )
                             }
                         }
-                        is Resource.Error -> Unit
+                        is Resource.Error -> Unit //добавь что хочешь сам
                         is Resource.Loading -> {
                             state = state.copy(isLoading = result.isLoading)
                         }
