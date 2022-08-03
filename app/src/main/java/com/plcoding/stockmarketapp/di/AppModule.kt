@@ -25,14 +25,18 @@ object AppModule {
         return Retrofit.Builder()
             .baseUrl(StockApi.BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create())
-            .client(OkHttpClient.Builder()
-                .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }).build())
+//            .client(OkHttpClient.Builder()
+//                .addInterceptor(HttpLoggingInterceptor()
+//                    .apply {
+//                        level = HttpLoggingInterceptor
+//                            .Level.BASIC }).build())
             .build()
             .create()
     }
 
     @Provides
     @Singleton
+    //Через StockApplication Dagger знает откуда брать параметр app: Application
     fun provideStockDatabase(app: Application): StockDatabase {
         return Room.databaseBuilder(
             app,
