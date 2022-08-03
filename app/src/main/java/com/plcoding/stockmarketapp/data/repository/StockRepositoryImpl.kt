@@ -1,8 +1,10 @@
 package com.plcoding.stockmarketapp.data.repository
 
-import com.opencsv.CSVParser
+
+import com.plcoding.stockmarketapp.data.csv.CSVParser
 import com.plcoding.stockmarketapp.data.local.StockDatabase
 import com.plcoding.stockmarketapp.data.mapper.toCompanyListing
+import com.plcoding.stockmarketapp.data.mapper.toCompanyListingEntity
 import com.plcoding.stockmarketapp.data.remote.StockApi
 import com.plcoding.stockmarketapp.domain.model.CompanyListing
 import com.plcoding.stockmarketapp.domain.repository.StockRepository
@@ -18,7 +20,7 @@ import javax.inject.Singleton
 class StockRepositoryImpl @Inject constructor(
     private val api: StockApi,
     private val db: StockDatabase,
-//    private val companyListingsParser: CSVParser<CompanyListing>,
+    private val companyListingsParser: CSVParser<CompanyListing>,
 //    private val intradayInfoParser: CSVParser<IntradayInfo>,
 ) : StockRepository {
 
@@ -63,7 +65,9 @@ class StockRepositoryImpl @Inject constructor(
             val remoteListings = try {
                 val response = api.getListings()
                 //bytestream получаем для чтения CSV файла
-                response.byteStream()
+                companyListingsParser.parse(response.byteStream())
+
+
             } catch(e: IOException) {
                 e.printStackTrace()
                 emit(Resource.Error("Couldn't load data"))
@@ -73,9 +77,32 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Error("Couldn't load data"))
                 null
             }
+
+            // если все ок
+            remoteListings?.let { listings ->
+            // удаляем все из базы
+                dao.clearCompanyListings()
+            // вставляем в базу полученные данные
+            // преобразуя их в класс-базу
+                dao.insertCompanyListings(
+                    listings.map { it.toCompanyListingEntity() }
+                )
+                // делаем поиск по базе согласно запросу
+                // и получаем данные в виде класса-модели
+                emit(Resource.Success(
+                    data = dao
+                        .searchCompanyListing("")
+                        .map { it.toCompanyListing() }
+                ))
+                emit(Resource.Loading(false))
+            }
         }
     }
-}
+
+
+
+        }
+
 
 
 
