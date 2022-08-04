@@ -23,6 +23,7 @@ interface StockRepository {
         ): Resource<List<IntradayInfo>>
 
         suspend fun getCompanyInfo(
-            symbol: String
+            symbol: String,
+            fetchFromRemote: Boolean,
         ): Resource<CompanyInfo>
 }

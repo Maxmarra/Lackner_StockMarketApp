@@ -1,10 +1,8 @@
-package com.plcoding.stockmarketapp.data.repository
-
+package com.plcoding.stockmarketapp
 
 import com.plcoding.stockmarketapp.data.csv.CSVParser
 import com.plcoding.stockmarketapp.data.local.StockDatabase
 import com.plcoding.stockmarketapp.data.mapper.toCompanyInfo
-import com.plcoding.stockmarketapp.data.mapper.toCompanyInfoEntity
 import com.plcoding.stockmarketapp.data.mapper.toCompanyListing
 import com.plcoding.stockmarketapp.data.mapper.toCompanyListingEntity
 import com.plcoding.stockmarketapp.data.remote.StockApi
@@ -34,42 +32,23 @@ class StockRepositoryImpl @Inject constructor(
         symbol: String,
         fetchFromRemote: Boolean,
 
-    ): Resource<CompanyInfo> {
+        ): Resource<CompanyInfo> {
+        return try {
+            val result = api.getCompanyInfo(symbol)
+            Resource.Success(result.toCompanyInfo())
 
-        val shouldJustLoadFromCache = !fetchFromRemote
-        if (shouldJustLoadFromCache) {
-            return Resource.Loading(false)
-        }
-
-        val result = try {
-            val response = api.getCompanyInfo(symbol)
-            Resource.Success(response.toCompanyInfo())
-
-        } catch (e: IOException) {
+        } catch(e: IOException) {
             e.printStackTrace()
             Resource.Error(
                 message = "Couldn't load company info"
             )
-        } catch (e: HttpException) {
+        } catch(e: HttpException) {
             e.printStackTrace()
             Resource.Error(
                 message = "Couldn't load company info"
             )
         }
-
-        result.let {
-            dao.clearCompanyInfo()
-            it.data?.let { it1 ->
-                dao.insertCompanyInfo(
-                    it1.toCompanyInfoEntity()
-                )
-            }
-
-            it.data?.let { it1 -> dao.insertCompanyInfo(it1.toCompanyInfoEntity()) }
-        }
-
     }
-
 
     override suspend fun getCompanyListings(
         //данный флаг используется при выборе
@@ -104,7 +83,7 @@ class StockRepositoryImpl @Inject constructor(
                 emit(Resource.Loading(false))
                 return@flow
             }
- ///////////////API////////////////////////
+            ///////////////API////////////////////////
             //первый раз всегда грузим из API
             //здесь идет непосредственный запрос к API
             val remoteListings = try {
@@ -125,10 +104,10 @@ class StockRepositoryImpl @Inject constructor(
 
             // если все ок
             remoteListings?.let { listings ->
-            // удаляем все из базы
+                // удаляем все из базы
                 dao.clearCompanyListings()
-            // вставляем в базу полученные данные
-            // преобразуя их в класс-базу
+                // вставляем в базу полученные данные
+                // преобразуя их в класс-базу
                 dao.insertCompanyListings(
                     listings.map { it.toCompanyListingEntity() }
                 )
@@ -146,7 +125,7 @@ class StockRepositoryImpl @Inject constructor(
 
 
     override suspend fun getIntradayInfo(symbol: String)
-    : Resource<List<IntradayInfo>> {
+            : Resource<List<IntradayInfo>> {
 
         return try {
             val response = api.getIntradayInfo(symbol)

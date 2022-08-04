@@ -27,12 +27,12 @@ class CompanyInfoViewModel @Inject constructor(
         viewModelScope.launch {
             //получаем символ компании из аргументов при переходе на эту страницу
             val symbol = savedStateHandle.get<String>("symbol") ?: return@launch
-
+            val fetchFromRemote = false
             state = state.copy(isLoading = true)
 
             //так как у нас сразу два запроса к API лушче их сделать
             //независимыми, чтобы не получилось что они сработают одновременно
-            val companyInfoResult = async { repository.getCompanyInfo(symbol) }
+            val companyInfoResult = async { repository.getCompanyInfo(symbol, fetchFromRemote) }
             val intradayInfoResult = async { repository.getIntradayInfo(symbol) }
 
             when(val result = companyInfoResult.await()) {
